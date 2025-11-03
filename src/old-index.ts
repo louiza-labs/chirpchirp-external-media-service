@@ -1,8 +1,17 @@
 import { createClient } from "@supabase/supabase-js";
 import axios from "axios";
+import { Elysia } from "elysia";
 import sharp from "sharp";
 
 import cloudinaryV2 from "./lib/cloudinary";
+
+const app = new Elysia();
+
+app.listen(Number(process.env.PORT) || 8080);
+
+console.log(
+  `🦊 Email Service is running at ${app.server?.hostname}:${app.server?.port}`
+);
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -389,14 +398,6 @@ const testImageCropping = async (testImageUrl: string) => {
 
 const mainProcess = async () => {
   try {
-    // ONE-OFF TEST: Test cropping on a single image
-    // await testImageCropping("YOUR_TEST_IMAGE_URL");
-    // return;
-
-    // ONE-OFF MIGRATION: Migrate existing images to have cropped versions
-    // await migrateExistingImagesToCloudinary();
-    // return;
-
     console.log("Starting external media service...\n");
 
     // Fetch all images from external API
