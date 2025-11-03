@@ -1,20 +1,13 @@
-// ============================================================================
-// External Media Service - Image Fetcher
-// ============================================================================
-
 import { createClient } from "@supabase/supabase-js";
 import axios from "axios";
 
-// ============================================================================
-// Supabase Setup
-// ============================================================================
+import cloudinaryV2 from "./lib/cloudinary";
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
   process.env.SUPABASE_ANON_KEY!
 );
 
-// TODO: ADD THIS IN AFTER GETTING INITIAL SETUP WITH HARDCODED BEARER TOKEN
 const generateBearerToken = async () => {};
 
 // ============================================================================
@@ -105,8 +98,32 @@ const checkIfImageNeedsUploading = async (imageID: string) => {
   return !data;
 };
 
+const uploadImageToCloudinary = async (imageURL: string) => {
+  if (!imageURL) return null;
+  try {
+    const uploadResult = await cloudinaryV2.uploader.upload(imageURL);
+    console.log("the upload result", uploadResult);
+    if (uploadResult.secure_url) return uploadResult.secure_url;
+    return null;
+  } catch (e) {
+    console.log("error uploading image to cloudinary", e);
+    return null;
+  }
+};
+
 // uploads the image to the DB table
 const uploadImageToDB = async (image: any) => {
+  // first upload to cloudinary
+  const imageURL = await uploadImageToCloudinary(image.enhancedImageUrl);
+
+  // If Cloudinary upload failed, throw error to prevent inserting invalid data
+  if (!imageURL) {
+    throw new Error(
+      `Failed to upload image ${image.id} to Cloudinary. Cannot insert into database without valid image URL.`
+    );
+  }
+
+  // then store cloudinary url in supabase
   const { data, error } = await supabase.from("images").insert({
     id: image.id,
     taken_on: image.takenOn,
@@ -114,9 +131,9 @@ const uploadImageToDB = async (image: any) => {
     file_name: image.fileName,
     local_file_name: image.localFileName,
     image_size: image.imageSize,
-    image_url: image.imageUrl,
-    download_url: image.downloadUrl,
-    enhanced_image_url: image.enhancedImageUrl,
+    image_url: imageURL,
+    download_url: imageURL,
+    enhanced_image_url: imageURL,
     camera_id: image.cameraId,
     camera_name: image.cameraName,
     modem_meid: image.modemMEID,
@@ -136,6 +153,101 @@ const uploadImageToDB = async (image: any) => {
   }
 
   return data;
+};
+
+// ONE-OFF FUNCTION TO MIGRATE IMAGE URLS TO CLOUDINARY
+const migrateExistingImagesToCloudinary = async () => {
+  // Fetch all images with pagination (Supabase default limit is 1000)
+  const pageSize = 1000;
+  let allImages: any[] = [];
+  let page = 0;
+  let hasMore = true;
+
+  while (hasMore) {
+    const from = page * pageSize;
+    const to = from + pageSize - 1;
+
+    const { data, error } = await supabase
+      .from("images")
+      .select("*")
+      .range(from, to);
+
+    if (error) {
+      console.error("Error fetching images:", error);
+      throw error;
+    }
+
+    if (!data || data.length === 0) {
+      hasMore = false;
+      break;
+    }
+
+    allImages = [...allImages, ...data];
+    console.log(`Fetched ${allImages.length} images so far...`);
+
+    // If we got fewer results than pageSize, we've reached the end
+    if (data.length < pageSize) {
+      hasMore = false;
+    } else {
+      page++;
+    }
+  }
+
+  if (allImages.length === 0) {
+    console.log("No images found to migrate");
+    return [];
+  }
+
+  console.log(`Retrieved ${allImages.length} images to migrate`);
+
+  // go through each image and upload each image_url to cloudinary
+  const updateImagesArrayPromise = allImages.map(async (image) => {
+    const originalImageUrl = image.image_url;
+    const cloudinaryImageURL = await uploadImageToCloudinary(originalImageUrl);
+    // replace the existing image url fields with the new url
+    if (cloudinaryImageURL) {
+      return {
+        ...image,
+        image_url: cloudinaryImageURL,
+        enhanced_image_url: cloudinaryImageURL,
+        download_url: cloudinaryImageURL,
+        hasCloudinaryUrl: true,
+      };
+    }
+    // Return original image if Cloudinary upload failed
+    return { ...image, hasCloudinaryUrl: false };
+  });
+
+  // update the existing images with the new results
+  const imagesToUpload = await Promise.all(updateImagesArrayPromise);
+
+  // Update each image individually if it has a Cloudinary URL
+  const supabaseUpdatesPromises = imagesToUpload.map(async (image) => {
+    // Only update if we successfully got a Cloudinary URL
+    if (image.hasCloudinaryUrl && image.image_url) {
+      const { data: updateData, error: updateError } = await supabase
+        .from("images")
+        .update({
+          image_url: image.image_url,
+          enhanced_image_url: image.enhanced_image_url,
+          download_url: image.download_url,
+        })
+        .eq("id", image.id);
+
+      if (updateError) {
+        console.error(`Error updating image ${image.id}:`, updateError);
+        return { error: updateError, imageId: image.id };
+      }
+
+      return { success: true, imageId: image.id, data: updateData };
+    }
+
+    // Return skipped if no Cloudinary URL was generated
+    return { skipped: true, imageId: image.id };
+  });
+
+  const updates = await Promise.all(supabaseUpdatesPromises);
+  return updates;
 };
 
 // processes images and uploads new ones
@@ -165,14 +277,11 @@ const processImages = async (images: any[]) => {
   );
 };
 
-// TODO: interval function to continually run this process
-
-// ============================================================================
-// Main Process
-// ============================================================================
-
 const mainProcess = async () => {
   try {
+    // console.log("running migration");
+    // const res = await migrateExistingImagesToCloudinary();
+
     console.log("Starting external media service...\n");
 
     const images = await fetchAllImages();
@@ -183,7 +292,7 @@ const mainProcess = async () => {
       console.log("No images to process");
     }
 
-    console.log("\n✓ Process completed successfully");
+    // console.log("\n✓ Process completed successfully");
   } catch (error) {
     console.error("✗ Process failed:", error);
     process.exit(1);
