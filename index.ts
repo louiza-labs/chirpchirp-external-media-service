@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import axios from "axios";
+import sharp from "sharp";
 
 import cloudinaryV2 from "./lib/cloudinary";
 
@@ -98,12 +99,85 @@ const checkIfImageNeedsUploading = async (imageID: string) => {
   return !data;
 };
 
+const cropImageLocally = async (imageURL: string) => {
+  try {
+    // Download image
+    const response = await axios.get(imageURL, {
+      responseType: "arraybuffer",
+    });
+    const imageBuffer = Buffer.from(response.data);
+
+    // Get image metadata
+    const metadata = await sharp(imageBuffer).metadata();
+    if (!metadata.width || !metadata.height) return null;
+
+    // Crop bottom 51px - keep width, reduce height by 51px
+    const croppedHeight = metadata.height - 51;
+
+    // Extract the top portion - this should remove bottom 51px exactly
+    const croppedBuffer = await sharp(imageBuffer)
+      .extract({
+        left: 0,
+        top: 0,
+        width: metadata.width,
+        height: croppedHeight,
+      })
+      .toFormat("jpeg", { quality: 100 }) // Ensure no transparency issues
+      .toBuffer();
+
+    // Verify dimensions
+    const verifyMetadata = await sharp(croppedBuffer).metadata();
+    console.log(
+      `Original: ${metadata.width}x${metadata.height}, Cropped: ${verifyMetadata.width}x${verifyMetadata.height}`
+    );
+
+    return croppedBuffer;
+  } catch (e) {
+    console.log("error cropping image locally", e);
+    return null;
+  }
+};
+
 const uploadImageToCloudinary = async (imageURL: string) => {
   if (!imageURL) return null;
   try {
-    const uploadResult = await cloudinaryV2.uploader.upload(imageURL);
-    console.log("the upload result", uploadResult);
-    if (uploadResult.secure_url) return uploadResult.secure_url;
+    // Crop image locally before uploading
+    const croppedBuffer = await cropImageLocally(imageURL);
+    if (!croppedBuffer) return null;
+
+    // Upload cropped image to Cloudinary - no transformations, exact dimensions
+    const croppedResult = await new Promise((resolve, reject) => {
+      cloudinaryV2.uploader
+        .upload_stream(
+          {
+            resource_type: "image",
+            format: "jpg",
+            flags: "immutable_cache", // Don't modify the image
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        )
+        .end(croppedBuffer);
+    });
+
+    const croppedUpload = croppedResult as any;
+    console.log("the upload result", croppedUpload);
+    if (croppedUpload) {
+      console.log(
+        `Uploaded dimensions: ${croppedUpload.width}x${croppedUpload.height}`
+      );
+    }
+
+    if (croppedUpload.secure_url) {
+      // Also upload original for download
+      const originalResult = await cloudinaryV2.uploader.upload(imageURL);
+      return {
+        originalUrl: originalResult.secure_url,
+        croppedUrl: croppedUpload.secure_url,
+      };
+    }
     return null;
   } catch (e) {
     console.log("error uploading image to cloudinary", e);
@@ -113,17 +187,13 @@ const uploadImageToCloudinary = async (imageURL: string) => {
 
 // uploads the image to the DB table
 const uploadImageToDB = async (image: any) => {
-  // first upload to cloudinary
-  const imageURL = await uploadImageToCloudinary(image.enhancedImageUrl);
-
-  // If Cloudinary upload failed, throw error to prevent inserting invalid data
-  if (!imageURL) {
+  const result = await uploadImageToCloudinary(image.enhancedImageUrl);
+  if (!result || !result.originalUrl) {
     throw new Error(
       `Failed to upload image ${image.id} to Cloudinary. Cannot insert into database without valid image URL.`
     );
   }
 
-  // then store cloudinary url in supabase
   const { data, error } = await supabase.from("images").insert({
     id: image.id,
     taken_on: image.takenOn,
@@ -131,9 +201,9 @@ const uploadImageToDB = async (image: any) => {
     file_name: image.fileName,
     local_file_name: image.localFileName,
     image_size: image.imageSize,
-    image_url: imageURL,
-    download_url: imageURL,
-    enhanced_image_url: imageURL,
+    image_url: result.croppedUrl || result.originalUrl,
+    download_url: result.originalUrl,
+    enhanced_image_url: result.croppedUrl || result.originalUrl,
     camera_id: image.cameraId,
     camera_name: image.cameraName,
     modem_meid: image.modemMEID,
@@ -200,54 +270,85 @@ const migrateExistingImagesToCloudinary = async () => {
 
   console.log(`Retrieved ${allImages.length} images to migrate`);
 
-  // go through each image and upload each image_url to cloudinary
-  const updateImagesArrayPromise = allImages.map(async (image) => {
-    const originalImageUrl = image.image_url;
-    const cloudinaryImageURL = await uploadImageToCloudinary(originalImageUrl);
-    // replace the existing image url fields with the new url
-    if (cloudinaryImageURL) {
-      return {
-        ...image,
-        image_url: cloudinaryImageURL,
-        enhanced_image_url: cloudinaryImageURL,
-        download_url: cloudinaryImageURL,
-        hasCloudinaryUrl: true,
-      };
-    }
-    // Return original image if Cloudinary upload failed
-    return { ...image, hasCloudinaryUrl: false };
-  });
+  // Process each image: crop it and upload both versions
+  let processedCount = 0;
+  let failedCount = 0;
 
-  // update the existing images with the new results
-  const imagesToUpload = await Promise.all(updateImagesArrayPromise);
+  for (const image of allImages) {
+    try {
+      console.log(
+        `Processing image ${image.id} (${processedCount + 1}/${
+          allImages.length
+        })...`
+      );
 
-  // Update each image individually if it has a Cloudinary URL
-  const supabaseUpdatesPromises = imagesToUpload.map(async (image) => {
-    // Only update if we successfully got a Cloudinary URL
-    if (image.hasCloudinaryUrl && image.image_url) {
-      const { data: updateData, error: updateError } = await supabase
-        .from("images")
-        .update({
-          image_url: image.image_url,
-          enhanced_image_url: image.enhanced_image_url,
-          download_url: image.download_url,
-        })
-        .eq("id", image.id);
-
-      if (updateError) {
-        console.error(`Error updating image ${image.id}:`, updateError);
-        return { error: updateError, imageId: image.id };
+      // Use the existing Cloudinary URL from database (already uploaded, uncropped)
+      const existingUrl =
+        image.image_url || image.download_url || image.enhanced_image_url;
+      if (!existingUrl) {
+        console.log(`Skipping image ${image.id} - no URL found`);
+        failedCount++;
+        continue;
       }
 
-      return { success: true, imageId: image.id, data: updateData };
+      // Download, crop locally, and upload only the cropped version
+      const croppedBuffer = await cropImageLocally(existingUrl);
+      if (!croppedBuffer) {
+        console.log(`✗ Failed to crop image ${image.id}`);
+        failedCount++;
+        continue;
+      }
+
+      // Upload cropped version to Cloudinary
+      const croppedResult = await new Promise((resolve, reject) => {
+        cloudinaryV2.uploader
+          .upload_stream(
+            {
+              resource_type: "image",
+              format: "jpg",
+              flags: "immutable_cache",
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          )
+          .end(croppedBuffer);
+      });
+
+      const croppedUpload = croppedResult as any;
+      if (croppedUpload && croppedUpload.secure_url) {
+        // Update database: cropped for display, existing URL for download
+        const { error: updateError } = await supabase
+          .from("images")
+          .update({
+            image_url: croppedUpload.secure_url, // Cropped version for display
+            enhanced_image_url: croppedUpload.secure_url, // Cropped version
+            download_url: existingUrl, // Keep existing Cloudinary URL (uncropped)
+          })
+          .eq("id", image.id);
+
+        if (updateError) {
+          console.error(`Error updating image ${image.id}:`, updateError);
+          failedCount++;
+        } else {
+          processedCount++;
+          console.log(`✓ Updated image ${image.id}`);
+        }
+      } else {
+        console.log(`✗ Failed to upload cropped version for image ${image.id}`);
+        failedCount++;
+      }
+    } catch (error) {
+      console.error(`Error processing image ${image.id}:`, error);
+      failedCount++;
     }
+  }
 
-    // Return skipped if no Cloudinary URL was generated
-    return { skipped: true, imageId: image.id };
-  });
-
-  const updates = await Promise.all(supabaseUpdatesPromises);
-  return updates;
+  console.log(
+    `\n✓ Migration complete: ${processedCount} processed, ${failedCount} failed`
+  );
+  return { processed: processedCount, failed: failedCount };
 };
 
 // processes images and uploads new ones
@@ -277,22 +378,38 @@ const processImages = async (images: any[]) => {
   );
 };
 
+const testImageCropping = async (testImageUrl: string) => {
+  const result = await uploadImageToCloudinary(testImageUrl);
+  if (result) {
+    console.log("Original:", result.originalUrl);
+    console.log("Cropped:", result.croppedUrl);
+  }
+  return result;
+};
+
 const mainProcess = async () => {
   try {
-    // console.log("running migration");
-    // const res = await migrateExistingImagesToCloudinary();
+    // ONE-OFF TEST: Test cropping on a single image
+    // await testImageCropping("YOUR_TEST_IMAGE_URL");
+    // return;
+
+    // ONE-OFF MIGRATION: Migrate existing images to have cropped versions
+    // await migrateExistingImagesToCloudinary();
+    // return;
 
     console.log("Starting external media service...\n");
 
+    // Fetch all images from external API
     const images = await fetchAllImages();
 
     if (images && images.length > 0) {
+      // Process images: check if new, crop locally, upload both versions to Cloudinary, update Supabase
       await processImages(images);
     } else {
       console.log("No images to process");
     }
 
-    // console.log("\n✓ Process completed successfully");
+    console.log("\n✓ Process completed successfully");
   } catch (error) {
     console.error("✗ Process failed:", error);
     process.exit(1);
