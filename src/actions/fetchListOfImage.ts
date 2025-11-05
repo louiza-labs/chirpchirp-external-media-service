@@ -27,6 +27,8 @@ export const fetchListOfImages = async (
         `⚠️  Page ${page}: No Results in response`,
         JSON.stringify(data, null, 2)
       );
+      // Release response data
+      (response.data as any) = null;
       return { images: [], pagination: null };
     }
 
@@ -48,6 +50,9 @@ export const fetchListOfImages = async (
         `⚠️  Page ${page}: Pagination indicates ${pagination.totalPages} pages but no images returned`
       );
     }
+
+    // Release response data after extracting what we need
+    (response.data as any) = null;
 
     return { images, pagination };
   } catch (error: any) {

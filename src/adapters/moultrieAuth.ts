@@ -11,7 +11,18 @@ export async function getValidToken(): Promise<string> {
   if (cachedToken) {
     return cachedToken;
   }
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({
+    headless: true,
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-gpu",
+      "--no-first-run",
+      "--no-zygote",
+      "--single-process", // Reduces memory usage
+    ],
+  });
   const context = await browser.newContext();
   const page = await context.newPage();
 
@@ -42,7 +53,7 @@ export async function getValidToken(): Promise<string> {
       await page.fill("#signInName", process.env.MOULTRIE_EMAIL!);
       await page.fill("#password", process.env.MOULTRIE_PASSWORD!);
       await Promise.all([
-        page.waitForNavigation({ waitUntil: "networkidle", timeout: 60000 }),
+        // page.waitForNavigation({ waitUntil: "networkidle", timeout: 60000 }),
         page.click("#next"),
       ]);
     }
@@ -52,7 +63,15 @@ export async function getValidToken(): Promise<string> {
       timeout: 60000,
     });
 
-    await page.waitForLoadState("networkidle");
+    // Wait for network idle with longer timeout (some pages keep making requests)
+    // If networkidle times out, try to get token anyway - it might already be there
+    try {
+      await page.waitForLoadState("networkidle", { timeout: 60000 });
+    } catch (e) {
+      // If networkidle times out, wait a bit and try to get token anyway
+      console.log("⚠️  Network idle timeout, waiting a bit and continuing...");
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
 
     // 4. Get token from localStorage
     let token = await page.evaluate(() =>

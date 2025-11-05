@@ -1,19 +1,15 @@
 import { callNextService } from "../actions/callNextService";
-import { fetchAllImages } from "../actions/fetchAllImages";
-import { processImages } from "../actions/processImages";
+import { fetchAndProcessImagesInBatches } from "../actions/fetchAllImages";
 
 export const mediaRoutes = (app: any) =>
-  app.post("/refresh-images", async () => {
+  app.post("/refresh-images", async (req: any) => {
     try {
-      console.log("Starting external media service...\n");
+      const { crop = false } = req.body || {};
+      console.log(`Starting external media service (crop: ${crop})...\n`);
 
-      const images = await fetchAllImages();
+      // Process images in batches as we fetch them to avoid memory issues
+      await fetchAndProcessImagesInBatches(crop);
 
-      if (images && images.length > 0) {
-        await processImages(images);
-      } else {
-        console.log("No images to process");
-      }
       console.log("\n✓ Process completed successfully");
 
       // Trigger next service (non-blocking)
