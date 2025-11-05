@@ -14,9 +14,32 @@ COPY . .
 
 # Production image
 FROM base AS release
+
+# Install system dependencies required for Playwright/Chromium
+# (Running as root by default in Docker)
+RUN apt-get update && apt-get install -y \
+    libnss3 \
+    libatk-bridge2.0-0 \
+    libdrm2 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libasound2 \
+    libpango-1.0-0 \
+    libcairo2 \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/src ./src
 COPY --from=build /app/package.json ./
+
+# Install Playwright Chromium browser to a shared location accessible to bun user
+ENV PLAYWRIGHT_BROWSERS_PATH=/app/.playwright
+RUN bunx playwright install chromium
+RUN chown -R bun:bun /app/.playwright
 
 # Run as non-root user for security
 USER bun

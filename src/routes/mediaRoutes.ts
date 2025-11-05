@@ -17,6 +17,7 @@ export const mediaRoutes = (app: any) =>
       console.log("\n✓ Process completed successfully");
 
       // Trigger next service (non-blocking)
+
       await callNextService();
 
       return { success: true, message: "Process completed successfully" };

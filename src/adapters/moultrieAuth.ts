@@ -29,10 +29,18 @@ export async function getValidToken(): Promise<string> {
       currentUrl.includes("b2c_1a_signup_signin");
 
     if (isLoginPage) {
+      if (process.env.MOULTRIE_EMAIL && process.env.MOULTRIE_PASSWORD) {
+        console.log("found email and password to use");
+      } else {
+        console.log(
+          "no email and password found, falling back to hardcoded bearer token"
+        );
+        return process.env.BEARER_TOKEN || "";
+      }
+
       await page.waitForSelector("#signInName", { timeout: 15000 });
       await page.fill("#signInName", process.env.MOULTRIE_EMAIL!);
       await page.fill("#password", process.env.MOULTRIE_PASSWORD!);
-
       await Promise.all([
         page.waitForNavigation({ waitUntil: "networkidle", timeout: 60000 }),
         page.click("#next"),
