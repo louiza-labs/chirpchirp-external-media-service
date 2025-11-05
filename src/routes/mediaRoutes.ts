@@ -1,3 +1,4 @@
+import { callNextService } from "../actions/callNextService";
 import { fetchAllImages } from "../actions/fetchAllImages";
 import { processImages } from "../actions/processImages";
 
@@ -14,6 +15,9 @@ export const mediaRoutes = (app: any) =>
         console.log("No images to process");
       }
       console.log("\n✓ Process completed successfully");
+
+      // Trigger next service (non-blocking)
+      await callNextService();
 
       return { success: true, message: "Process completed successfully" };
     } catch (error) {
