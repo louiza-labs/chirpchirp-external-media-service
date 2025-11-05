@@ -1,0 +1,122 @@
+{
+  "cookies": [
+    {
+      "name": "x-ms-cpim-csrf",
+      "value": "M3BUWWxXZVB0a09Sck43KzlKTWpNdGlLWWlCWlR4QUV5VDFoUm5sS3AwRFIrQ1VLVHErOGp3UUN1aEtaVzFYZ2MwUTlnVXQrTmlYY1FzdEgzY24zNnc9PTsyMDI1LTExLTA1VDA1OjAwOjU5LjcwNDczMTFaO0NLYWhOaEU0dm1Bd2Y2T0hjaEFvTmc9PTt7Ik9yY2hlc3RyYXRpb25TdGVwIjoxfQ==",
+      "domain": ".login.moultriemobile.com",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "ai_user",
+      "value": "EdX3|2025-11-05T05:00:59.975Z",
+      "domain": "login.moultriemobile.com",
+      "path": "/",
+      "expires": 1793854859,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "ai_session",
+      "value": "e0REU|1762318860077.5|1762318860077.5",
+      "domain": "login.moultriemobile.com",
+      "path": "/",
+      "expires": 1762320660,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": ".AspNetCore.Antiforgery.RtGCWVXC8-4",
+      "value": "CfDJ8EyEUkzFgyhCj91RrTOpl07b6EUGpKRXKmoWJ0rharsZmQo01aVHJavMOnq6zJtQgaPhEyDc3peXgIW24n2679RG1E-8NP9aRt4zYkgrNCArS4Rx1NaCrxKngKibWUhd2_DFp3f15uF0_c4ihWP-H7Q",
+      "domain": "web.moultriemobile.com",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Strict"
+    },
+    {
+      "name": "x-ms-cpim-sso:moultriemobile.onmicrosoft.com_0",
+      "value": "m1.NBvH9RIhW3DYiNEo.udrydU7gzCW1VdCuB2jXXg==.0.A+MlLZYME0TR6g1s+bNi8AlnnjebiPvPMMN1xlnnx0Yov4kNsIbetDBY5tP2kHEi4VWJizA1aWj+bqCfXeoML66hoN/hvRN42NKQMfj30sY3BYKXgo5y2CERokvpvefbujZezts3BtDlmqxU+75KwEwyqM+fobu4U5cgfTUTM6qCTKmwXb91Ub5ZXpBW64IL4WxsLpYukWM8Qhacs6mx/0QIDLWAmKec2YAXbfh9meRU9u7rN6Pofuaw4rTh54lIdCqOiBMHtGwJaYX0a4SomQsw82AnPOjlPXuLZyF3jfXvqSHX0MebukqimwaB6h7VIwfoaOCHUbmHuZJI9Ss9Ulc/WBs9yjByqcMgdUGymBHFKLXuJP4hZ75y2CfeI9WEl2ju78E2jLuLUtDCHvdOlg6y8sxUOGc5qKWmx9B2cr/5js7nGSO+7/XLclBJbkHv2xydB7ntBPjxNDu+h4hT+LAyka58xV4mRgjJ4f8ldwZVbAfO30vk6H7vUV4eeRnZzfrjarYQilb8GOwQ7bqTDg00aNGDkTYIM5l0OMVrmvHdAJc=",
+      "domain": ".login.moultriemobile.com",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "ARRAffinitySameSite",
+      "value": "8528420ccde62e3f7e0853edb739a8d6354b7e2ef9fb495e896bc5189e88015e",
+      "domain": ".web.moultriemobile.com",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "ARRAffinity",
+      "value": "8528420ccde62e3f7e0853edb739a8d6354b7e2ef9fb495e896bc5189e88015e",
+      "domain": ".web.moultriemobile.com",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "https://web.moultriemobile.com",
+      "localStorage": [
+        {
+          "name": "blazor-resource-hash:MM.Blazor.Consumer.Site.Client",
+          "value": "sha256-chfm1xAGkSNuW5hAH5FshTUsQN2O+PQRuT9tj1bY0Uo="
+        },
+        {
+          "name": "d2800777-0797-45e2-bcfe-5c6bc9d3749e-b2c_1a_signup_signin.46148adf-3109-46fc-ac67-9b17d664afc3-login.moultriemobile.com-accesstoken-ab523e40-983c-4f89-adf8-e258d78cb689-46148adf-3109-46fc-ac67-9b17d664afc3-https://moultriemobile.onmicrosoft.com/9e848fa3-9069-4bf0-bcc3-ab9451d97416/access_as_user--",
+          "value": "{\"homeAccountId\":\"d2800777-0797-45e2-bcfe-5c6bc9d3749e-b2c_1a_signup_signin.46148adf-3109-46fc-ac67-9b17d664afc3\",\"credentialType\":\"AccessToken\",\"secret\":\"eyJhbGciOiJSUzI1NiIsImtpZCI6IkhXTVZLOXl6VUJDeklaNjFSdmJxV19hd2VMajFCTDNyT3RHTm1UbnF1czQiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiI5ZTg0OGZhMy05MDY5LTRiZjAtYmNjMy1hYjk0NTFkOTc0MTYiLCJpc3MiOiJodHRwczovL2xvZ2luLm1vdWx0cmllbW9iaWxlLmNvbS80NjE0OGFkZi0zMTA5LTQ2ZmMtYWM2Ny05YjE3ZDY2NGFmYzMvdjIuMC8iLCJleHAiOjE3NjI0MDUyNjcsIm5iZiI6MTc2MjMxODg2Nywic3ViIjoiZDI4MDA3NzctMDc5Ny00NWUyLWJjZmUtNWM2YmM5ZDM3NDllIiwiTU1JZCI6MTM0MjY1OSwiZW1haWwiOiJqb3NlcGguYS50b2xlZGFub0BnbWFpbC5jb20iLCJnaXZlbl9uYW1lIjoiSm9zZXBoIiwiZmFtaWx5X25hbWUiOiJUb2xlZGFubyIsInRpZCI6IjQ2MTQ4YWRmLTMxMDktNDZmYy1hYzY3LTliMTdkNjY0YWZjMyIsInJlZkNvZGUiOiJ7T0FVVEgtS1Y6cmVmQ29kZX0iLCJub25jZSI6IjVlZWM2OWQ2LWFhMmUtNDYzMC05NTM4LTI1NDU1MTgzZjI5NyIsInNjcCI6ImFjY2Vzc19hc191c2VyIiwiYXpwIjoiYWI1MjNlNDAtOTgzYy00Zjg5LWFkZjgtZTI1OGQ3OGNiNjg5IiwidmVyIjoiMS4wIiwiaWF0IjoxNzYyMzE4ODY3fQ.GpVbnOJMnbaqfQDHQsfgL3fvsVanhNmLiAupMP4NRGIv7ZMQku_iWHbbSRAwoW9KX4bpGFXznfZLMoHNtR9ZSt1JsdoMwns0ldfVqhoE7tngKIINqG3JhB7mdhJSncD70jiNSig--yX9esrCTveY4aOvQ6WtFlMoDXubx1nFOsr1EAnZCj0rUcTGQadddFd5D_Y_OnWICFP6qW-bcDPl51BjHJYVHajKclqjgxQDuXehlsTtKUOhQRtIDCEarhbuOHAvIXigmoqYNxvLujpV6I1PtspXseKFna6e3iOT7rLaV5hi5eHUOnak6nFbVrfI5Br-D2y5jMjYgbp_OVZB9g\",\"cachedAt\":\"1762318867\",\"expiresOn\":\"1762405267\",\"extendedExpiresOn\":\"1762405267\",\"environment\":\"login.moultriemobile.com\",\"clientId\":\"ab523e40-983c-4f89-adf8-e258d78cb689\",\"realm\":\"46148adf-3109-46fc-ac67-9b17d664afc3\",\"target\":\"https://moultriemobile.onmicrosoft.com/9e848fa3-9069-4bf0-bcc3-ab9451d97416/access_as_user\",\"tokenType\":\"Bearer\"}"
+        },
+        {
+          "name": "MMBlazorBearerToken",
+          "value": "\"eyJhbGciOiJSUzI1NiIsImtpZCI6IkhXTVZLOXl6VUJDeklaNjFSdmJxV19hd2VMajFCTDNyT3RHTm1UbnF1czQiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiI5ZTg0OGZhMy05MDY5LTRiZjAtYmNjMy1hYjk0NTFkOTc0MTYiLCJpc3MiOiJodHRwczovL2xvZ2luLm1vdWx0cmllbW9iaWxlLmNvbS80NjE0OGFkZi0zMTA5LTQ2ZmMtYWM2Ny05YjE3ZDY2NGFmYzMvdjIuMC8iLCJleHAiOjE3NjI0MDUyNjcsIm5iZiI6MTc2MjMxODg2Nywic3ViIjoiZDI4MDA3NzctMDc5Ny00NWUyLWJjZmUtNWM2YmM5ZDM3NDllIiwiTU1JZCI6MTM0MjY1OSwiZW1haWwiOiJqb3NlcGguYS50b2xlZGFub0BnbWFpbC5jb20iLCJnaXZlbl9uYW1lIjoiSm9zZXBoIiwiZmFtaWx5X25hbWUiOiJUb2xlZGFubyIsInRpZCI6IjQ2MTQ4YWRmLTMxMDktNDZmYy1hYzY3LTliMTdkNjY0YWZjMyIsInJlZkNvZGUiOiJ7T0FVVEgtS1Y6cmVmQ29kZX0iLCJub25jZSI6IjVlZWM2OWQ2LWFhMmUtNDYzMC05NTM4LTI1NDU1MTgzZjI5NyIsInNjcCI6ImFjY2Vzc19hc191c2VyIiwiYXpwIjoiYWI1MjNlNDAtOTgzYy00Zjg5LWFkZjgtZTI1OGQ3OGNiNjg5IiwidmVyIjoiMS4wIiwiaWF0IjoxNzYyMzE4ODY3fQ.GpVbnOJMnbaqfQDHQsfgL3fvsVanhNmLiAupMP4NRGIv7ZMQku_iWHbbSRAwoW9KX4bpGFXznfZLMoHNtR9ZSt1JsdoMwns0ldfVqhoE7tngKIINqG3JhB7mdhJSncD70jiNSig--yX9esrCTveY4aOvQ6WtFlMoDXubx1nFOsr1EAnZCj0rUcTGQadddFd5D_Y_OnWICFP6qW-bcDPl51BjHJYVHajKclqjgxQDuXehlsTtKUOhQRtIDCEarhbuOHAvIXigmoqYNxvLujpV6I1PtspXseKFna6e3iOT7rLaV5hi5eHUOnak6nFbVrfI5Br-D2y5jMjYgbp_OVZB9g\""
+        },
+        {
+          "name": "d2800777-0797-45e2-bcfe-5c6bc9d3749e-b2c_1a_signup_signin.46148adf-3109-46fc-ac67-9b17d664afc3-login.moultriemobile.com-idtoken-ab523e40-983c-4f89-adf8-e258d78cb689-46148adf-3109-46fc-ac67-9b17d664afc3---",
+          "value": "{\"credentialType\":\"IdToken\",\"homeAccountId\":\"d2800777-0797-45e2-bcfe-5c6bc9d3749e-b2c_1a_signup_signin.46148adf-3109-46fc-ac67-9b17d664afc3\",\"environment\":\"login.moultriemobile.com\",\"clientId\":\"ab523e40-983c-4f89-adf8-e258d78cb689\",\"secret\":\"eyJhbGciOiJSUzI1NiIsImtpZCI6IkhXTVZLOXl6VUJDeklaNjFSdmJxV19hd2VMajFCTDNyT3RHTm1UbnF1czQiLCJ0eXAiOiJKV1QifQ.eyJleHAiOjE3NjI0MDUyNjcsIm5iZiI6MTc2MjMxODg2NywidmVyIjoiMS4wIiwiaXNzIjoiaHR0cHM6Ly9sb2dpbi5tb3VsdHJpZW1vYmlsZS5jb20vNDYxNDhhZGYtMzEwOS00NmZjLWFjNjctOWIxN2Q2NjRhZmMzL3YyLjAvIiwic3ViIjoiZDI4MDA3NzctMDc5Ny00NWUyLWJjZmUtNWM2YmM5ZDM3NDllIiwiYXVkIjoiYWI1MjNlNDAtOTgzYy00Zjg5LWFkZjgtZTI1OGQ3OGNiNjg5IiwiYWNyIjoiYjJjXzFhX3NpZ251cF9zaWduaW4iLCJub25jZSI6IjVlZWM2OWQ2LWFhMmUtNDYzMC05NTM4LTI1NDU1MTgzZjI5NyIsImlhdCI6MTc2MjMxODg2NywiYXV0aF90aW1lIjoxNzYyMzE4ODY2LCJNTUlkIjoxMzQyNjU5LCJlbWFpbCI6Impvc2VwaC5hLnRvbGVkYW5vQGdtYWlsLmNvbSIsImdpdmVuX25hbWUiOiJKb3NlcGgiLCJmYW1pbHlfbmFtZSI6IlRvbGVkYW5vIiwidGlkIjoiNDYxNDhhZGYtMzEwOS00NmZjLWFjNjctOWIxN2Q2NjRhZmMzIiwicmVmQ29kZSI6IntPQVVUSC1LVjpyZWZDb2RlfSIsImF0X2hhc2giOiJjdzMzeUtaNU52eHp4aDM2YTNzV2FBIn0.CYxl7cn9h8THVH3q6bpH00zD1fnGZCx2Em1mMfUPgVqVEHpgNbbR5E8MzbiihOS2dnYEbcvYXlSWZFxNJVxz4MKsHd5_RZYXPe6Wv7UVZ88Q6_yWCbVouAGDOe3Usnhnr2mU-A3pP_MEfAPObNWVSMlir8ne2cfMowVHoLt0-aWDPN9xRzVsMkBohM4299NdHcVZp7lBgsj_4_G6ruwZdawis4VzTHLyIitqb8lDuyeCSxcq7XHn6-reZs8u_vAM2Tf3uhDT1ekHfB13rUx6ltdYZ8MGblemcNfeabgb4mscSDU-puZJSPskh1llW1hyS11D4AAH_-iBvJ2gIQ1rdQ\",\"realm\":\"46148adf-3109-46fc-ac67-9b17d664afc3\"}"
+        },
+        {
+          "name": "d2800777-0797-45e2-bcfe-5c6bc9d3749e-b2c_1a_signup_signin.46148adf-3109-46fc-ac67-9b17d664afc3-login.moultriemobile.com-refreshtoken-ab523e40-983c-4f89-adf8-e258d78cb689----",
+          "value": "{\"clientId\":\"ab523e40-983c-4f89-adf8-e258d78cb689\",\"credentialType\":\"RefreshToken\",\"environment\":\"login.moultriemobile.com\",\"homeAccountId\":\"d2800777-0797-45e2-bcfe-5c6bc9d3749e-b2c_1a_signup_signin.46148adf-3109-46fc-ac67-9b17d664afc3\",\"secret\":\"eyJraWQiOiJ5VlExQjBzQjlldGJjOE9lUU1rTlNNbnp6MzdINTBKdHBfX013bGJkRDlBIiwidmVyIjoiMS4wIiwiemlwIjoiRGVmbGF0ZSIsInNlciI6IjEuMCJ9.pQXXeQAJ01AV8ro2pbMTo2zaL3HARh33lY_e4A7sk57foTrKmstCRZDXr1owHu8lEOMVEDhz9bDPfyzczF88vmzg2ex3ZYBLer59f0UXJotUWyXfqMXiLjCoik8B8GX1Bo2MMzYnsYoaEGyGoRspFaASl5DAdYFuHEA-_QYgja4KStVrHHPAIz5JOfll9qyUBDElks9ZzdJWQBaAinX-2kVf8kZL94-XrIJ2GJSqVAWyQeeOEXl0LZpEBHVOrL-YZiVmLcttt6rEoXTllvf5oV5Ug7Nwg-nU5IJ6TAFrqBWTwxvOOsvHbIheZuysKilHmxnIPJ__EjkEqwEVyJjsPw._A9qUYtr4teIbXYl.2wdcZRpGSEwrDgp-jo8UhmpNs95eqHmnLgOemjGtmzZQuZlXToxp0bkdQjVcHODQKk4EPXdud91X04Yga_9vBIfgtbuWmW9vcoItDTVKd6diOUhMnRuz6qVLtMBMjuvPU67ZUqwulFfRGjY3PJxjg4qe5rEdHxEZbqN4kdrsOhB9TkM22xMXZxk0XFMDgEWD7_tEb55dqNHUa3TZt2s9gQ8hS17kXXRBe5Y8CScyjgdCezQSEQWnu1sJHzwzivPf0oozAeBX0bwRTPucHLNOMc3VZps_8K9HRkiy4DbTUJPS29KZxF8HI8skqm99CcUbefGmtc0v4ppl4BVOsMVCjKXXHN6lQDvumb7W3zyJiNkutbvFWbCYSYIg_caPoUZ1XfvO57ookkWMKtPLMAn_C9Tb12OxULJS_O15H4uJ2e8WL3y3yqWc3dS3QZpXVgsF9z352gJapHDsYIa5qoosE5NRTSv-iRHdZsvZmXEP4QnDuhTRC-Flk3ORMMppbpAyoUAny6wvE9Xic3L7wo1d6q_OQ5zUU9_qNhfaBuL5ITzY2S3zE6tlPPMtJqyPW0OK8CLznD9Pn9-u6gDjd2vbzndVkeQUWP73xbkoDSQXE3zu30AzIld9NrzZwsjhVLdIWoWhjQyOCRxCGbzgV4hKJLQX-qFd2igi-rH2Fq-JxR54ZnAKjMjB8FoWDqHvYifnQs_ysXmshP_IPvErXemXRflZZMoeVnu6Q91x3kevc2H4NYQnYFk_fmooBIQRKKAT9bdDOzTK-U5-eubmbNW6lvD48gkJxlyB_s8r5xNzRqo_inQyNRi66TCYB9Wq5gRLu-OGoVyGF_8FWlLVQkthXHSv4akc.M2dnuPkfguy-8R3Ca6abMQ\"}"
+        },
+        {
+          "name": "d2800777-0797-45e2-bcfe-5c6bc9d3749e-b2c_1a_signup_signin.46148adf-3109-46fc-ac67-9b17d664afc3-login.moultriemobile.com-46148adf-3109-46fc-ac67-9b17d664afc3",
+          "value": "{\"authorityType\":\"MSSTS\",\"clientInfo\":\"eyJ1aWQiOiJkMjgwMDc3Ny0wNzk3LTQ1ZTItYmNmZS01YzZiYzlkMzc0OWUtYjJjXzFhX3NpZ251cF9zaWduaW4iLCJ1dGlkIjoiNDYxNDhhZGYtMzEwOS00NmZjLWFjNjctOWIxN2Q2NjRhZmMzIn0\",\"homeAccountId\":\"d2800777-0797-45e2-bcfe-5c6bc9d3749e-b2c_1a_signup_signin.46148adf-3109-46fc-ac67-9b17d664afc3\",\"environment\":\"login.moultriemobile.com\",\"realm\":\"46148adf-3109-46fc-ac67-9b17d664afc3\",\"idTokenClaims\":{\"exp\":1762405267,\"nbf\":1762318867,\"ver\":\"1.0\",\"iss\":\"https://login.moultriemobile.com/46148adf-3109-46fc-ac67-9b17d664afc3/v2.0/\",\"sub\":\"d2800777-0797-45e2-bcfe-5c6bc9d3749e\",\"aud\":\"ab523e40-983c-4f89-adf8-e258d78cb689\",\"acr\":\"b2c_1a_signup_signin\",\"nonce\":\"5eec69d6-aa2e-4630-9538-25455183f297\",\"iat\":1762318867,\"auth_time\":1762318866,\"MMId\":1342659,\"email\":\"joseph.a.toledano@gmail.com\",\"given_name\":\"Joseph\",\"family_name\":\"Toledano\",\"tid\":\"46148adf-3109-46fc-ac67-9b17d664afc3\",\"refCode\":\"{OAUTH-KV:refCode}\",\"at_hash\":\"cw33yKZ5Nvxzxh36a3sWaA\"},\"localAccountId\":\"d2800777-0797-45e2-bcfe-5c6bc9d3749e\",\"username\":\"\",\"cloudGraphHostName\":\"\",\"msGraphHost\":\"\"}"
+        },
+        {
+          "name": "MMBlazorUserDeviceId",
+          "value": "2cf6480e-c738-479b-91c7-9cd45d5c4b95"
+        },
+        {
+          "name": "LastLoginTime",
+          "value": "\"2025-11-05T00:01:07.283-05:00\""
+        }
+      ]
+    },
+    {
+      "origin": "https://login.moultriemobile.com",
+      "localStorage": [
+        {
+          "name": "ai_session",
+          "value": "e0REU|1762318860077.5|1762318860077.5"
+        }
+      ]
+    }
+  ]
+}

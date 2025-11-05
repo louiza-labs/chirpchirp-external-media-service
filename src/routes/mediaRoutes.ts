@@ -3,7 +3,7 @@ import { fetchAllImages } from "../actions/fetchAllImages";
 import { processImages } from "../actions/processImages";
 
 export const mediaRoutes = (app: any) =>
-  app.post("/upload/images", async () => {
+  app.post("/refresh-images", async () => {
     try {
       console.log("Starting external media service...\n");
 

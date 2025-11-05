@@ -8,6 +8,8 @@ export const callNextService = async () => {
     return;
   }
 
+  console.log("Calling the next service:", nextServiceUrl);
+
   try {
     const response = await fetch(nextServiceUrl, {
       method: "POST",

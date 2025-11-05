@@ -1,12 +1,17 @@
 {
   "name": "external-media-service",
-  "module": "index.ts",
+  "module": "src/index.ts",
   "type": "module",
   "devDependencies": {
     "@types/bun": "^1.3.1"
   },
   "scripts": {
-    "start": "bun run index.ts"
+    "start": "bun run src/index.ts",
+    "dev": "bun --hot run src/index.ts",
+    "docker:build": "docker build -t external-media-service .",
+    "docker:run": "docker run -p 8080:8080 --env-file .env --name external-media-service external-media-service",
+    "docker:stop": "docker stop external-media-service && docker rm external-media-service",
+    "docker:test": "bun run docker:build && bun run docker:run"
   },
   "peerDependencies": {
     "typescript": "^5"
@@ -16,6 +21,8 @@
     "axios": "^1.12.2",
     "cloudinary": "^2.8.0",
     "elysia": "^1.4.15",
+    "jwt-decode": "^4.0.0",
+    "playwright": "^1.56.1",
     "sharp": "^0.34.4"
   }
 }
