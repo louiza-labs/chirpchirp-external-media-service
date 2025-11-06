@@ -9,25 +9,50 @@ let cachedToken: string | null = null;
 export async function getValidToken(): Promise<string> {
   if (cachedToken) return cachedToken;
 
-  // Launch with persistent user data dir to preserve localStorage/cookies
+  // Launch headless Chromium with all container-safe flags
   const browser = await chromium.launchPersistentContext("/tmp/chromium-data", {
     headless: true,
+    viewport: { width: 1280, height: 800 },
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
       "--disable-dev-shm-usage",
       "--disable-gpu",
       "--single-process",
+      "--disable-blink-features=AutomationControlled",
+      "--disable-web-security",
+      "--allow-running-insecure-content",
+      "--window-size=1280,800",
+      "--start-maximized",
+      "--disable-infobars",
+      "--ignore-certificate-errors",
+      "--enable-features=NetworkService,NetworkServiceInProcess",
+      "--disable-features=IsolateOrigins,site-per-process",
+      "--lang=en-US,en",
     ],
   });
 
   const page = await browser.newPage();
 
+  // 🕵️ Add small stealth patches so Azure B2C treats this as real browser
+  await browser.addInitScript(() => {
+    Object.defineProperty(navigator, "webdriver", { get: () => false });
+    Object.defineProperty(navigator, "plugins", { get: () => [1, 2, 3] });
+    Object.defineProperty(navigator, "languages", {
+      get: () => ["en-US", "en"],
+    });
+  });
+
+  await browser.setExtraHTTPHeaders({
+    "User-Agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0 Safari/537.36",
+  });
+
   try {
     console.log("🌐 Navigating to Moultrie login...");
     await page.goto(LOGIN_URL, {
       waitUntil: "domcontentloaded",
-      timeout: 30000,
+      timeout: 60000,
     });
 
     const currentUrl = page.url();
@@ -37,71 +62,87 @@ export async function getValidToken(): Promise<string> {
 
     if (isLoginPage) {
       if (!process.env.MOULTRIE_EMAIL || !process.env.MOULTRIE_PASSWORD) {
-        console.log(
-          "⚠️  Missing credentials, falling back to static bearer token."
-        );
+        console.log("⚠️  Missing credentials, using fallback bearer token.");
         await browser.close();
         return process.env.BEARER_TOKEN || "";
       }
 
       console.log("✅ Found email/password, performing login...");
-      await page.waitForSelector("#signInName", { timeout: 15000 });
-      await page.fill("#signInName", process.env.MOULTRIE_EMAIL!);
-      await page.fill("#password", process.env.MOULTRIE_PASSWORD!);
-      await Promise.all([page.click("#next")]);
+      await page.waitForSelector("#signInName", { timeout: 20000 });
+      await page.focus("#signInName");
+      await page.keyboard.type(process.env.MOULTRIE_EMAIL!, { delay: 50 });
+      await page.focus("#password");
+      await page.keyboard.type(process.env.MOULTRIE_PASSWORD!, { delay: 50 });
+
+      // Small pause to let validation scripts run
+      await page.waitForTimeout(1000);
+
+      // Sometimes #next is disabled until validation finishes
+      await page
+        .waitForFunction(
+          () => {
+            const btn = document.querySelector(
+              "#next"
+            ) as HTMLButtonElement | null;
+            return btn && !btn.disabled;
+          },
+          { timeout: 10000 }
+        )
+        .catch(() => console.log("⚠️ Continue even if #next stays disabled"));
+
+      console.log("👆 Clicking login button now...");
+      await Promise.all([
+        page.waitForNavigation({ waitUntil: "networkidle", timeout: 120000 }),
+        page.click("#next", { delay: 100 }),
+      ]);
+
+      console.log("➡️ Clicked login, waiting for redirect...");
     }
 
-    // Wait for redirect to main app domain
-    await page.waitForURL(/https?:\/\/web\.moultriemobile\.com/, {
-      timeout: 60000,
-    });
-    await page.waitForLoadState("domcontentloaded");
-    await new Promise((r) => setTimeout(r, 3000)); // let Blazor boot fully
+    // Wait until redirected into the app
+    try {
+      await page.waitForURL(/https?:\/\/web\.moultriemobile\.com/, {
+        timeout: 120000,
+      });
+      console.log("✅ Redirected to Moultrie web app");
+    } catch {
+      console.log(
+        "⚠️ Timed out waiting for redirect, current URL:",
+        page.url()
+      );
+    }
+
+    // Wait for app to stabilize
+    await page.waitForLoadState("domcontentloaded", { timeout: 60000 });
+    await page.waitForTimeout(4000);
 
     console.log("🪣 Attempting to read token from localStorage...");
     let token: string | null = null;
 
-    for (let attempt = 0; attempt < 5; attempt++) {
+    for (let attempt = 0; attempt < 6; attempt++) {
       try {
         token = await page.evaluate(() =>
           localStorage.getItem("MMBlazorBearerToken")
         );
         if (token) break;
       } catch (err) {
-        const msg = String(err);
-        if (msg.includes("Execution context was destroyed")) {
-          console.log(
-            "🔄 Navigation detected mid-read, waiting for stability..."
-          );
-          await page
-            .waitForLoadState("networkidle", { timeout: 15000 })
-            .catch(() => {});
-          await new Promise((r) => setTimeout(r, 2000));
+        if (String(err).includes("Execution context was destroyed")) {
+          console.log("🔄 Navigation detected mid-read, retrying...");
+          await page.waitForTimeout(1500);
           continue;
         }
         throw err;
       }
-      if (!token) {
-        console.log(`🕓 Retry ${attempt + 1}/5: token not yet found...`);
-        await new Promise((r) => setTimeout(r, 2000));
-      }
+      console.log(`🕓 Retry ${attempt + 1}/6: token not yet found...`);
+      await page.waitForTimeout(2000);
     }
 
     if (!token) {
-      throw new Error(
-        "❌ No MMBlazorBearerToken found in localStorage after retries."
-      );
+      throw new Error("❌ MMBlazorBearerToken not found after retries.");
     }
 
-    // Clean token formatting
-    token = token.trim();
-    if (
-      (token.startsWith('"') && token.endsWith('"')) ||
-      (token.startsWith("'") && token.endsWith("'"))
-    ) {
-      token = token.slice(1, -1).trim();
-    }
-
+    // Cleanup token
+    token = token.trim().replace(/^['"]|['"]$/g, "");
     cachedToken = token;
     console.log("🔐 Successfully retrieved and cached token.");
     return token;

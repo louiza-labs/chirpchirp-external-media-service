@@ -19,15 +19,16 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # ==========================================================
-# Stage 4: Release image for Cloud Run
+# Stage 4: Release image for Cloud Run or local Docker
 # ==========================================================
 FROM oven/bun:1 AS release
 WORKDIR /app
 
 # ----------------------------------------------------------
-# Install all system dependencies required for Chromium
+# 1. Install all Chromium dependencies — include missing ones
+#    (libvpx, libxss1, libgtk, dbus, etc.)
 # ----------------------------------------------------------
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libnss3 \
     libatk-bridge2.0-0 \
     libdrm2 \
@@ -43,35 +44,49 @@ RUN apt-get update && apt-get install -y \
     libxshmfence1 \
     libegl1 \
     libx11-xcb1 \
-    fonts-liberation \
     libx11-6 \
+    libxext6 \
+    libxrender1 \
+    libvpx7 \
+    libxss1 \
+    libgtk-3-0 \
+    libdbus-1-3 \
+    ca-certificates \
+    fonts-liberation \
+    fonts-noto-color-emoji \
     && rm -rf /var/lib/apt/lists/*
 
 # ----------------------------------------------------------
-# Copy dependencies and code
+# 2. Copy dependencies and code
 # ----------------------------------------------------------
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/src ./src
 COPY --from=build /app/package.json ./
 
 # ----------------------------------------------------------
-# Install Playwright Chromium to a writable path
+# 3. Install Playwright browsers in /ms-playwright (standard path)
 # ----------------------------------------------------------
-ENV PLAYWRIGHT_BROWSERS_PATH=/tmp/playwright
-RUN bunx playwright install --with-deps chromium
+# Use a persistent install location (not /tmp) so it’s accessible to the bun user
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+RUN bunx playwright install chromium
 
 # ----------------------------------------------------------
-# Environment & runtime settings
+# 4. Environment & runtime settings
 # ----------------------------------------------------------
 ENV NODE_ENV=production
 ENV DEBUG="pw:browser*"
 ENV PORT=8080
+ENV HOME=/app
 
-# Cloud Run requires non-root user but allows tmp writes
+# ----------------------------------------------------------
+# 5. Security & permissions setup
+# ----------------------------------------------------------
+# Create a writable cache + tmp directory for Playwright
+RUN mkdir -p /app/.cache /app/tmp /ms-playwright && chmod -R 777 /app /ms-playwright /tmp
 USER bun
 EXPOSE 8080
 
 # ----------------------------------------------------------
-# Start the service
+# 6. Launch service
 # ----------------------------------------------------------
 CMD ["bun", "run", "src/index.ts"]

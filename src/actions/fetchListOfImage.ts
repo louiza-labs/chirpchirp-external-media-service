@@ -1,12 +1,24 @@
 import axios from "axios";
-import { clearTokenCache, getValidToken } from "../adapters/moultrieAuth.ts";
-
+import { fetchBearerToken } from "../adapters/laforgeAuth.ts";
 export const fetchListOfImages = async (
   page = 1,
   retry = true
 ): Promise<{ images: any[]; pagination: any }> => {
   const externalAPIURL = process.env.EXTERNAL_MEDIA_LIST_API_URL!;
-  const bearerToken = await getValidToken();
+  const bearerToken = await fetchBearerToken();
+  if (!bearerToken) {
+    // error getting the bearer token
+    console.error("Unable to retrieve the bearer token");
+    return {
+      images: [],
+      pagination: {
+        totalPages: 1,
+        currentPage: 1,
+        totalCount: 0,
+        pageSize: 0,
+      },
+    };
+  }
 
   try {
     const response = await axios.post(
@@ -58,8 +70,6 @@ export const fetchListOfImages = async (
   } catch (error: any) {
     // Handle 401 - clear cache and retry once
     if (error.response?.status === 401 && retry) {
-      console.log("🔄 Received 401, clearing token cache and retrying...");
-      clearTokenCache();
       return fetchListOfImages(page, false);
     }
 
