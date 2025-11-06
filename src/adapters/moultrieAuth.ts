@@ -18,7 +18,6 @@ export async function getValidToken(): Promise<string> {
       "--disable-dev-shm-usage",
       "--disable-gpu",
       "--single-process",
-      "--user-data-dir=/tmp/chromium-data",
     ],
   });
 
