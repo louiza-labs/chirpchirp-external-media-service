@@ -7,10 +7,9 @@ const LOGIN_URL =
 let cachedToken: string | null = null;
 
 export async function getValidToken(): Promise<string> {
-  // Return cached token if available
-  if (cachedToken) {
-    return cachedToken;
-  }
+  if (cachedToken) return cachedToken;
+
+  // Launch with persistent user data dir to preserve localStorage/cookies
   const browser = await chromium.launchPersistentContext("/tmp/chromium-data", {
     headless: true,
     args: [
@@ -19,77 +18,83 @@ export async function getValidToken(): Promise<string> {
       "--disable-dev-shm-usage",
       "--disable-gpu",
       "--single-process",
+      "--user-data-dir=/tmp/chromium-data",
     ],
   });
+
   const page = await browser.newPage();
 
   try {
-    // 1. Go to URL
+    console.log("🌐 Navigating to Moultrie login...");
     await page.goto(LOGIN_URL, {
       waitUntil: "domcontentloaded",
       timeout: 30000,
     });
 
-    // 2. Check if we're on login page - if so, login
     const currentUrl = page.url();
     const isLoginPage =
       currentUrl.includes("login.moultriemobile.com") ||
       currentUrl.includes("b2c_1a_signup_signin");
 
     if (isLoginPage) {
-      if (process.env.MOULTRIE_EMAIL && process.env.MOULTRIE_PASSWORD) {
-        console.log("found email and password to use");
-      } else {
+      if (!process.env.MOULTRIE_EMAIL || !process.env.MOULTRIE_PASSWORD) {
         console.log(
-          "no email and password found, falling back to hardcoded bearer token"
+          "⚠️  Missing credentials, falling back to static bearer token."
         );
+        await browser.close();
         return process.env.BEARER_TOKEN || "";
       }
 
+      console.log("✅ Found email/password, performing login...");
       await page.waitForSelector("#signInName", { timeout: 15000 });
       await page.fill("#signInName", process.env.MOULTRIE_EMAIL!);
       await page.fill("#password", process.env.MOULTRIE_PASSWORD!);
-      await Promise.all([
-        // page.waitForNavigation({ waitUntil: "networkidle", timeout: 60000 }),
-        page.click("#next"),
-      ]);
+      await Promise.all([page.click("#next")]);
     }
 
-    // 3. Wait for redirect to Moultrie web app
+    // Wait for redirect to main app domain
     await page.waitForURL(/https?:\/\/web\.moultriemobile\.com/, {
       timeout: 60000,
     });
+    await page.waitForLoadState("domcontentloaded");
+    await new Promise((r) => setTimeout(r, 3000)); // let Blazor boot fully
 
-    // Wait for network idle with longer timeout (some pages keep making requests)
-    // If networkidle times out, try to get token anyway - it might already be there
-    try {
-      await page.waitForLoadState("networkidle", { timeout: 60000 });
-    } catch (e) {
-      // If networkidle times out, wait a bit and try to get token anyway
-      console.log("⚠️  Network idle timeout, waiting a bit and continuing...");
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-    }
+    console.log("🪣 Attempting to read token from localStorage...");
+    let token: string | null = null;
 
-    // 4. Get token from localStorage
-    let token = await page.evaluate(() =>
-      localStorage.getItem("MMBlazorBearerToken")
-    );
-
-    if (!token) {
-      for (let i = 0; i < 5; i++) {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      try {
         token = await page.evaluate(() =>
           localStorage.getItem("MMBlazorBearerToken")
         );
         if (token) break;
-        await page.waitForTimeout(2000);
+      } catch (err) {
+        const msg = String(err);
+        if (msg.includes("Execution context was destroyed")) {
+          console.log(
+            "🔄 Navigation detected mid-read, waiting for stability..."
+          );
+          await page
+            .waitForLoadState("networkidle", { timeout: 15000 })
+            .catch(() => {});
+          await new Promise((r) => setTimeout(r, 2000));
+          continue;
+        }
+        throw err;
+      }
+      if (!token) {
+        console.log(`🕓 Retry ${attempt + 1}/5: token not yet found...`);
+        await new Promise((r) => setTimeout(r, 2000));
       }
     }
 
     if (!token) {
-      throw new Error("❌ No MMBlazorBearerToken found in localStorage.");
+      throw new Error(
+        "❌ No MMBlazorBearerToken found in localStorage after retries."
+      );
     }
 
-    // Remove quotes from token if present
+    // Clean token formatting
     token = token.trim();
     if (
       (token.startsWith('"') && token.endsWith('"')) ||
@@ -98,15 +103,14 @@ export async function getValidToken(): Promise<string> {
       token = token.slice(1, -1).trim();
     }
 
-    // 5. Cache and return token
     cachedToken = token;
+    console.log("🔐 Successfully retrieved and cached token.");
     return token;
   } finally {
     await browser.close();
   }
 }
 
-// Function to clear the cached token (useful if token becomes invalid)
 export function clearTokenCache(): void {
   cachedToken = null;
 }
