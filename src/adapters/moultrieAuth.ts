@@ -11,20 +11,17 @@ export async function getValidToken(): Promise<string> {
   if (cachedToken) {
     return cachedToken;
   }
-  const browser = await chromium.launch({
+  const browser = await chromium.launchPersistentContext("/tmp/chromium-data", {
     headless: true,
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
       "--disable-dev-shm-usage",
       "--disable-gpu",
-      "--no-first-run",
-      "--no-zygote",
-      "--single-process", // Reduces memory usage
+      "--single-process",
     ],
   });
-  const context = await browser.newContext();
-  const page = await context.newPage();
+  const page = await browser.newPage();
 
   try {
     // 1. Go to URL
@@ -77,6 +74,16 @@ export async function getValidToken(): Promise<string> {
     let token = await page.evaluate(() =>
       localStorage.getItem("MMBlazorBearerToken")
     );
+
+    if (!token) {
+      for (let i = 0; i < 5; i++) {
+        token = await page.evaluate(() =>
+          localStorage.getItem("MMBlazorBearerToken")
+        );
+        if (token) break;
+        await page.waitForTimeout(2000);
+      }
+    }
 
     if (!token) {
       throw new Error("❌ No MMBlazorBearerToken found in localStorage.");
