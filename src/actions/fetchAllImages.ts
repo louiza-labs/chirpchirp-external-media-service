@@ -70,7 +70,7 @@ export const fetchAllImages = async () => {
  * Instead of accumulating all 910 images before processing, we process
  * them in batches of 10 pages (100 images) as we fetch them.
  */
-export const fetchAndProcessImagesInBatches = async (crop: boolean = true) => {
+export const fetchAndProcessImagesInBatches = async (crop: boolean = false) => {
   console.log("Fetching first page to determine total pages...\n");
 
   const firstPage = await fetchListOfImages(1);

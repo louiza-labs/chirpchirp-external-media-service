@@ -5,6 +5,7 @@ export const mediaRoutes = (app: any) =>
   app.post("/refresh-images", async (req: any) => {
     try {
       const { crop = false } = req.body || {};
+      // SETTING CROP TO TRUE FOR MOULTRIE IMAGES TO REMOVE BANNER
       console.log(`Starting external media service (crop: ${crop})...\n`);
 
       // Process images in batches as we fetch them to avoid memory issues
